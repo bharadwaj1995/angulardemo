@@ -21,9 +21,10 @@ pipeline {
     }
     stage ('push') {
       steps{
-    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: '438d87ad-85aa-4b4b-a6c7-df0dd0fbe08b', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: '98b7f3ca-8b00-4cd3-a8fa-84aa613d2c85	', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
         sh 'aws s3 ls'
-        sh 'aws s3 sync ../angular_demo@2/dist/ s3://sample-angular-demo/ --region us-east-2'
+        sh 'aws s3api create-bucket --bucket testing-sample-angular --region us-east-1'
+        sh 'aws s3 sync ../angular_build@2/dist/ s3://testing-sample-angular/ --region us-east-1'
         }
         sh 'echo pushing success'
       }
