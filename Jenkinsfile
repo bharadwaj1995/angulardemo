@@ -1,36 +1,33 @@
-pipeline{
+pipeline {
   agent any
   stages{
-    stage ('checkout'){
+    stage ('checkout') {
       steps{
         checkout scm
       }
     }
-   stage ('Build'){
-       parallel {
-             stage("Angular Build") {
-                  agent {
-                      docker { image 'node:10' }
-                  }
-                  steps {
-                         echo Installing packages
-                         npm install
-                         npm install -g @angular/cli@8
-                         echo Building Angular Project
-                         ng build
-                  }
-             }
-              stage("S3 Build") {
-                  steps {
-                         //aws cloudformation create-stack --stack-name S3bucketcreation --template-body file:cft.yaml
-                         aws s3api creat-bucket --bucket angular-demo-bucket --region us-east-1
-                  }
-              }
-       }
-   }
-    stage ('Deploy'){
-      steps{
-        aws s3 cp dist/ s3://AngularS3Bucket/ --recursive --region us-east-1
+    stage ('Build') {
+      agent {
+        docker { image 'node:10'}
+      }
+      steps {
+        sh 'echo installing packages'
+        sh 'npm install'
+        sh 'npm install -g @angular/cli@8'
+        sh 'echo Building Angular Project'
+        sh 'ng build'
+
       }
     }
+    stage ('push') {
+      steps{
+    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: '438d87ad-85aa-4b4b-a6c7-df0dd0fbe08b', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        sh 'aws s3 ls'
+        sh 'aws s3 sync ../angular_demo@2/dist/ s3://sample-angular-demo/ --region us-east-2'
+        }
+        sh 'echo pushing success'
+      }
+    }
+
+  }
 }
